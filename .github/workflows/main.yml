@@ -1,4 +1,4 @@
-name: Deploy to S3
+name: Deploy Next.js to S3
 
 on:
   push:
@@ -7,21 +7,26 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install deps
-        run: npm ci
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Build and export
-        run: |
-          npm run build
-        
+      - run: npm ci
 
-      - name: Sync to S3
+      - name: Build Next.js (static export)
+        run: npm run build
+
+      - name: Debug output
+        run: ls -la out
+
+      - name: Deploy to S3
         uses: jakejarvis/s3-sync-action@master
         with:
-          args: --acl public-read --follow-symlinks --delete
+          args: --delete
         env:
           AWS_S3_BUCKET: dev-next-port
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
